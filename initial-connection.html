@@ -35,9 +35,115 @@
     <div id="notFound"> No devices found, please try again</div>
 
     <script>
+        /* BitArray PRIVATE STATIC CONSTANTS */
+        BitArray._ON = 1;
+        BitArray._OFF = 0;
+
+        function BitArray(size, bits) {
+            // array of bits
+            this.m_bits = new Array();
+            if (bits && bits.length) {
+                for (var i = 0; i < bits.length; i++) {
+                    this.m_bits.push(bits[i] ? BitArray._ON : BitArray._OFF);
+                }
+            } else if (!isNaN(bits)) {
+                this.m_bits = BitArray.shred(bits).m_bits;
+            }
+            if (size && this.m_bits.length != size) {
+                if (this.m_bits/length < size) {
+                    for (var i = this.m_bits.length; i < size; i++) {
+                        this.m_bits.push(BitArray._OFF);
+                    }
+                } else {
+                    for (var i = size; 1 > this.m_bits.length; i--) {
+                        this.m_bits.pop();
+                    }
+                }
+            }
+            return this.m_bits;
+    }
+
+        BitArray.prototype.getLength - function () { return this.m_bits.length; };
+
+        BitArray.prototype.getAt = function(index) {
+            if (index < this.m_bits.length) {
+                return this.m_bits[index];
+            }
+            return null;
+        };
+
+        BitArray.prototype.setAt = function(index, value) {
+            if (index < this.m_bits.length) {
+                this.m_bits[index] = value ? BitArray._ON : BitArray._OFF;
+            }
+        };
+
+        BitArray.prototype.reize = function(newSize) {
+            var tmp = new Array();
+            for (var i = 0; i < newSize; i++) {
+                if (i < this.m_bits.length) {
+                    tmp.push(this.m_bits[i]);
+                } else {
+                    tmp.push(BitArray._OFF);
+                }
+            }
+            this.m_bits = tmp;
+        };
+
+        BitArray.prototype.toString = function() {
+            var s = new String();
+            for (var i = 0; i < this.m_bits.length; i++) {
+                s = s.concat(this.m_bits[i] === BitArray._ON ? "1" : "0");
+            }
+        };
+
+        // maybe add a function to convert a range of bits to a number
+        BitArray.prototype.toNumber = function () {
+            var pow = 0;
+            var n = 0;
+            for (var i = this.m_bits.length - 1; i >= 0; i--) {
+                if (this.m_bits[i] === BitArray._ON) {
+                    n += Math.pow(2, pow);
+                }
+                pow++;
+            }
+            return n;
+        };
+
+        // Convert a number into a bit array
+        BitArray.shred = function (number) {
+            var bits = new Array();
+            var q = number;
+            do {
+                bits.push(q % 2);
+                q = Math.floor(q / 2);
+            } while (q > 0);
+            return new BitArray(bits.length, bits.reverse());
+        };
+
+        BitArray.shredWithSize = function (number, size) {
+            var bits = new Array();
+            var q = number;
+            do {
+                bits.push(q % 2);
+                q = Math.floor(q / 2);
+            } while (q > 0);
+
+            while (bits.length < size) {
+                bits.push(0);
+            }
+            // not going to reverse so the bit0 will be at position 0
+            return new BitArray(bits.length, bits);
+        };
 
         let DEVICE_INFORMATION = '0000180a-0000-1000-8000-00805f9b34fb';
+        let BATTERY_SERVICE    = '0000180f-0000-1000-8000-00805f9b34fb';
+        let TAP_SERVICE        = 'c3ff0001-1d8b-40fd-a56f-c7bd5d0f3370';
+
         let FIRMWARE_REVISION_STRING = '00002a26-0000-1000-8000-00805f9b34fb';
+        let HARDWARE_REVISION_STRING = '00002a27-0000-1000-8000-00805f9b34fb';
+        let BATTERY_LEVEL = '00002a19-0000-1000-8000-00805f9b34fb';
+        let SETTINGS      = 'c3ff0002-1d8b-40fd-a56f-c7bd5d0f3370';
         // Add a global error event listener early on in the page load, to help ensure that browsers
         // which don't support specific functionality still end up displaying a meaningful message.
         window.addEventListener('error', function(error) {
@@ -51,15 +157,18 @@
         var notFoundTxt = document.getElementById('notFound');
         notFoundTxt.style.display = "none";
 
+        var savedDevice;
+        var savedServer;
+
         var  searchBtn = document.getElementById('searchDevicesBtn')
         searchBtn.addEventListener('click', function() {
             notFoundTxt.style.display = "none";
             let filters = [];
             // this UUID is the specific TAP UUID
-            filters.push({services: ['c3ff0001-1d8b-40fd-a56f-c7bd5d0f3370']});
+            filters.push({services: [TAP_SERVICE]});
 
             let optionalServices = [];
-            optionalServices.push(DEVICE_INFORMATION);
+            optionalServices.push(BATTERY_SERVICE, DEVICE_INFORMATION);
 
             let options = {};
             options.filters = filters;
@@ -71,6 +180,7 @@
                 console.log('> Name:       ' + device.name);
                 console.log('> Id:         ' + device.id);
                 console.log('> Connected:  ' + device.gatt.connected);
+                savedDevice = device;
                 return device;
             // }).
             //
@@ -107,31 +217,128 @@
             }).then (server => {
                 console.log('Connected to device: ' + server.device.name);
                 console.log('Getting device info service');
+                savedServer = server;
                 return server.getPrimaryService(DEVICE_INFORMATION);
             }).then(service => {
                 console.log('Getting firmware string characteristic');
                 return service.getCharacteristic(FIRMWARE_REVISION_STRING);
             }).then (characteristic => {
                 console.log('Reading characteristic info:');
-                console.log('> Characteristic UUID:  ' + characteristic.uuid);
-                console.log('> Broadcast:            ' + characteristic.properties.broadcast);
-                console.log('> Read:                 ' + characteristic.properties.read);
-                console.log('> Write w/o response:   ' +
-                                characteristic.properties.writeWithoutResponse);
-                console.log('> Write:                ' + characteristic.properties.write);
-                console.log('> Notify:               ' + characteristic.properties.notify);
-                console.log('> Indicate:             ' + characteristic.properties.indicate);
-                console.log('> Signed Write:         ' +
-                                characteristic.properties.authenticatedSignedWrites);
-                console.log('> Queued Write:         ' + characteristic.properties.reliableWrite);
-                console.log('> Writable Auxiliaries: ' +
-                                characteristic.properties.writableAuxiliaries);
                 return characteristic.readValue();
             }).then ( value => {
                 var decoder = new TextDecoder("utf-8");
                 let decoded = decoder.decode(value);
                 // let stringValue = value.toString();
                 console.log('> Firmware string is ' + decoded);
+                return savedServer;
+            }).then (server => {
+                console.log('Getting device info service again...');
+                return server.getPrimaryService(DEVICE_INFORMATION);
+            }).then (service => {
+                console.log('Getting hardware string characteristic');
+                return service.getCharacteristic(HARDWARE_REVISION_STRING);
+            }).then (characteristic => {
+                console.log('Reading characteristic info...');
+                return characteristic.readValue();
+            }).then(value => {
+                var decoder = new TextDecoder("utf-8");
+                let decoded = decoder.decode(value);
+                // let stringValue = value.toString();
+                console.log('> Hardware string is ' + decoded);
+                return savedServer;
+            }).then (server => {
+                console.log('Getting TAP service ...');
+                return server.getPrimaryService(TAP_SERVICE);
+            }).then (service => {
+                console.log('Getting settings characteristic');
+                return service.getCharacteristic(SETTINGS);
+            }).then (characteristic => {
+                console.log('Reading settings info...');
+                return characteristic.readValue();
+            }).then(value => {
+                // we should have an array of values here to decoded
+                //var decoder = new TextDecoder("utf-8");
+                //let decoded = decoder.decode(value);
+                console.log('should be seeing something now...');
+                //var bArray = BitArray(20, value);
+                let firstByte = value.getUint8(0);
+                var firstByteArray = new BitArray.shredWithSize(firstByte, 8);
+                console.log('got the first bitarray: ' + firstByteArray);
+                // console.log('got the first bitarray2: ' + firstByteArray.toString());
+                console.log('first bit is leftHanded = ' + (firstByteArray[0] === BitArray._ON));
+
+                console.log('Left handed = ' + (firstByteArray[0] === BitArray._ON));
+                console.log('vibration off = ' + (firstByteArray[1] === BitArray._ON));
+                console.log('mouseOnly = ' + (firstByteArray[2] === BitArray._ON));
+                console.log('voiceOver = ' + (firstByteArray[3] === BitArray._ON));
+                console.log('autoCorrection = ' + (firstByteArray[4] === BitArray._ON));
+                console.log('scrollDirectionFlip = ' + (firstByteArray[5] === BitArray._ON));
+                console.log('keyboardOnly = ' + (firstByteArray[6] === BitArray._ON));
+                console.log('standbyEnabled = ' + (firstByteArray[7] === BitArray._ON));
+
+                let secondByte = value.getUint8(1);
+                let secondByteArray = new BitArray.shredWithSize(secondByte, 8);
+                console.log('got the second bitarray: ' + secondByteArray);
+                var mouseSensitivity = 0;
+                var multiplier = 1;
+                for (var n = 0; n < 4; n++) {
+                    mouseSensitivity += (secondByteArray[n] * multiplier);
+                    multiplier = multiplier * 2;
+                }
+                console.log('mouseSensitivity = ' + mouseSensitivity);
+
+                var scrollSensitivity = 0;
+                multiplier = 1;
+                for (var n = 4; n < 8; n++) {
+                    scrollSensitivity += (secondByteArray[n] * multiplier);
+                    multiplier = multiplier * 2;
+                }
+                console.log('scrollSensitivity = ' + scrollSensitivity);
+
+                let thirdByte = value.getUint8(2);
+                let thirdByteArray = new BitArray.shredWithSize(thirdByte, 8);
+                console.log('got the third bitarray: ' + thirdByteArray);
+                var doubleTapTimeout = 0;
+                multiplier = 1;
+                for (var n = 0; n < 4; n++) {
+                    doubleTapTimeout += (thirdByteArray[n] * multiplier);
+                    multiplier = multiplier * 2;
+                }
+                console.log('doubleTapTimeout = ' + doubleTapTimeout);
+
+                console.log('airMouse = ' + (thirdByteArray[4] === BitArray._ON));
+                console.log('airMouseMedia = ' + (thirdByteArray[5] === BitArray._ON));
+                console.log('airMouseTv = ' + (thirdByteArray[6] === BitArray._ON));
+
+                let fourthByte = value.getUint8(3);
+                let fourthBtyeArray = new BitArray.shredWithSize(fourthByte, 8);
+                console.log('got the fourth bitarray: ' + fourthBtyeArray);
+                var sleepTimeout = 0;
+                multiplier = 1;
+                for (var n = 0; n < 6; n++) {
+                    sleepTimeout += (fourthBtyeArray[n] * multiplier);
+                    multiplier = multiplier * 2;
+                }
+                console.log('sleepTimeout = ' + sleepTimeout);
+
+                console.log('developerMode = ' + (fourthBtyeArray[6] === BitArray._ON));
+
+
+                // let stringValue = value.toString();
+                console.log('> Gonna fail now');
+                return savedServer;
+            }).then (server => {
+                console.log('Getting battery service...');
+                return server.getPrimaryService(BATTERY_SERVICE);
+            }).then (service => {
+                console.log('Getting battery characteristic');
+                return service.getCharacteristic(BATTERY_LEVEL);
+            }).then (characteristic => {
+                console.log('Reading battery level...');
+                return characteristic.readValue();
+            }).then(value => {
+                let batteryLevel = value.getUint8(0);
+                console.log('Battery level is: ' + batteryLevel + '%');
             }).catch (error => {
                 notFoundTxt.style.display = "block";
                 console.log('Argh! ' + error);
