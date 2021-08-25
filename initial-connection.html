@@ -142,6 +142,7 @@
     <button id="searchDevicesBtn">Search for Tap </button>
 
     <div id="notFound"> No devices found, please try again</div>
+    <p>
     <div id="general"> General:</div>
     <div class="settingItem" id="checkForUpdates">
         <div>Check for updates</div>
@@ -222,6 +223,48 @@
         <div>Mouse and Keyboard</div>
         <label class="switch">
             <input type="checkbox" id="mouseAndKeyboardSwitch">
+            <span class="slider round"><span>
+        </label>
+    </div>
+
+    <div id="customMapping">Custom Tap Mapping:</div>
+
+    <!--this isn't going to work yet -->
+    <div class="settingItem" id="tapMappingBox">
+        <div>Tap mapping</div>
+        <button id="mappingButton">Mapping</button>
+    </div>
+
+    <div id="mouse"> Mouse:</div>
+
+    <div class="settingItem" id="mouseSensitivityBox">
+        <div>Mouse Sensitivity</div>
+        <div class="slidecontainer">
+            <input type="range" min="1" max="10" value="5" class="scaler" id="mouseSensitivitySlider">
+        </div>
+    </div>
+
+    <div class="settingItem" id="scrollSensitivityBox">
+        <div>Scroll Sensitivity</div>
+        <div class="slidecontainer">
+            <input type="range" min="1" max="10" value="5" class="scaler" id="scrollSensitivitySlider">
+        </div>
+    </div>
+
+    <div class="settingItem" id="scrollDirectionFlipBox">
+        <div>Scroll Direction Flip</div>
+        <label class="switch">
+            <input type="checkbox" id="scrollDirectionFlipSwitch">
+            <span class="slider round"><span>
+        </label>
+    </div>
+
+    <div id="development"> Development:</div>
+
+    <div class="settingItem" id="developerModeBox">
+        <div>Developer Mode</div>
+        <label class="switch">
+            <input type="checkbox" id="developerModeSwitch">
             <span class="slider round"><span>
         </label>
     </div>
@@ -398,6 +441,32 @@
         mouseAndKeyboardBox.style.display = "none";
         var mouseAndKeyboardSwitch = document.getElementById('mouseAndKeyboardSwitch');
 
+        var customMappingHeader = document.getElementById('customMapping');
+        customMappingHeader.style.display = "none";
+        var tapMappingBox = document.getElementById('tapMappingBox');
+        tapMappingBox.style.display = "none";
+        var mappingButton = document.getElementById('mappingButton');
+
+        var mouseHeader = document.getElementById('mouse');
+        mouseHeader.style.display = "none";
+        var mouseSensitivityBox = document.getElementById('mouseSensitivityBox');
+        mouseSensitivityBox.style.display = "none";
+        var mouseSensitivitySlider = document.getElementById('mouseSensitivitySlider');
+
+        var scrollSensitivityBox = document.getElementById('scrollSensitivityBox');
+        scrollSensitivityBox.style.display = "none";
+        var scrollSensitivitySlider = document.getElementById('scrollSensitivitySlider');
+
+        var scrollDirectionFlipBox = document.getElementById('scrollDirectionFlipBox');
+        scrollDirectionFlipBox.style.display = "none";
+        var scrollDirectionFlipSwitch = document.getElementById('scrollDirectionFlipSwitch');
+
+        var developmentHeader = document.getElementById('development');
+        developmentHeader.style.display = "none";
+        var developerModeBox = document.getElementById('developerModeBox');
+        developerModeBox.style.display = "none";
+        var developerModeSwitch = document.getElementById('developerModeSwitch');
+
         var savedDevice;
         var savedServer;
 
@@ -567,7 +636,7 @@
 
                 // let stringValue = value.toString();
                 generalHeader.style.display = "block";
-                checkUpdatesBox.style.display = "block";
+                // checkUpdatesBox.style.display = "block";
                 leftHandBox.style.display = "block";
                 leftHandedSwitch.checked = (firstByteArray[0] === BitArray._ON);
                 vibrationBox.style.display = "block";
@@ -588,6 +657,18 @@
                 keyboardOnlySwitch.checked = (firstByteArray[6] === BitArray._ON);
                 mouseAndKeyboardBox.style.display = "block";
                 mouseAndKeyboardSwitch.checked = !((firstByteArray[2] === BitArray._ON) || (firstByteArray[6] === BitArray._ON));
+                // customMappingHeader.style.display = "block";
+                // tapMappingBox.style.display = "block";
+                mouseHeader.style.display = "block";
+                mouseSensitivityBox.style.display = "block";
+                mouseSensitivitySlider.value = mouseSensitivity;
+                scrollSensitivityBox.style.display = "block";
+                scrollSensitivitySlider.value = scrollSensitivity;
+                scrollDirectionFlipBox.style.display = "block";
+                scrollDirectionFlipSwitch.checked = (firstByteArray[5] === BitArray._ON);
+                developmentHeader.style.display = "block";
+                developerModeBox.style.display = "block";
+                developerModeSwitch.checked = (fourthBtyeArray[6] === BitArray._ON);
                 console.log('> Gonna fail now');
                 return savedServer;
             }).then (server => {
