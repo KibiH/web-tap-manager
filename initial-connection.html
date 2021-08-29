@@ -457,7 +457,39 @@
             console.log("whole fourth byte is " + fourthByte);
             sendingArray[3] = fourthByte;
 
+            console.log('> Characteristic UUID:  ' + savedSettingsCharacteristic.uuid);
+            savedSettingsCharacteristic.writeValueWithoutResponse(sendingArray).then (
+                function() {
+                    console.log("got here");
+                }
+            );
+            console.log("Woo, we did the settings");
+        }
 
+        function disconnected() {
+            notFoundTxt.style.display = "block";
+
+            generalHeader.style.display = "none";
+            // checkUpdatesBox.style.display = "block";
+            leftHandBox.style.display = "none";
+            vibrationBox.style.display = "none";
+            standbyBox.style.display = "none";
+            doubleTapTimeoutBox.style.display = "none";
+            sleepAfterBox.style.display = "none";
+            textHeader.style.display = "none";
+            autoCorrectionBox.style.display = "none";
+            inputHeader.style.display = "none";
+            mouseOnlyBox.style.display = "none";
+            keyboardOnlyBox.style.display = "none";
+            mouseAndKeyboardBox.style.display = "none";
+            // customMappingHeader.style.display = "none";
+            // tapMappingBox.style.display = "none";
+            mouseHeader.style.display = "none";
+            mouseSensitivityBox.style.display = "none";
+            scrollSensitivityBox.style.display = "none";
+            scrollDirectionFlipBox.style.display = "none";
+            developmentHeader.style.display = "none";
+            developerModeBox.style.display = "none";
         }
 
         let DEVICE_INFORMATION = '0000180a-0000-1000-8000-00805f9b34fb';
@@ -581,6 +613,7 @@
 
         var savedDevice;
         var savedServer;
+        var savedSettingsCharacteristic;
 
         var  searchBtn = document.getElementById('searchDevicesBtn')
         searchBtn.addEventListener('click', function() {
@@ -635,6 +668,10 @@
             //     notFoundTxt.style.display = "block";
             }).then (device => {
                 console.log('Here we are connecting to ' + device.name);
+                device.addEventListener('gattserverdisconnected', function() {
+                    console.log("disconnected");
+                    disconnected();
+                });
                 return device.gatt.connect();
             }).then (server => {
                 // console.log('Connected to device: ' + server.device.name);
@@ -661,6 +698,7 @@
                 return service.getCharacteristic(HARDWARE_REVISION_STRING);
             }).then (characteristic => {
                 // console.log('Reading characteristic info...');
+                savedSettingsCharacteristic = characteristic;
                 return characteristic.readValue();
             }).then(value => {
                 var decoder = new TextDecoder("utf-8");
@@ -955,29 +993,7 @@
                 }
 
             }).catch (error => {
-                notFoundTxt.style.display = "block";
-
-                generalHeader.style.display = "none";
-                // checkUpdatesBox.style.display = "block";
-                leftHandBox.style.display = "none";
-                vibrationBox.style.display = "none";
-                standbyBox.style.display = "none";
-                doubleTapTimeoutBox.style.display = "none";
-                sleepAfterBox.style.display = "none";
-                textHeader.style.display = "none";
-                autoCorrectionBox.style.display = "none";
-                inputHeader.style.display = "none";
-                mouseOnlyBox.style.display = "none";
-                keyboardOnlyBox.style.display = "none";
-                mouseAndKeyboardBox.style.display = "none";
-                // customMappingHeader.style.display = "none";
-                // tapMappingBox.style.display = "none";
-                mouseHeader.style.display = "none";
-                mouseSensitivityBox.style.display = "none";
-                scrollSensitivityBox.style.display = "none";
-                scrollDirectionFlipBox.style.display = "none";
-                developmentHeader.style.display = "none";
-                developerModeBox.style.display = "none";
+                disconnected();
 
                 console.log('Argh! ' + error);
             });
