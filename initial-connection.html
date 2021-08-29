@@ -209,6 +209,17 @@
             <input type="checkbox" id="mouseOnlySwitch">
             <span class="slider round"><span>
         </label>
+
+        <dialog id="mouseOnlyDialog">
+            <form method="dialog">
+                <h1>Mouse Only</h1>
+                <label>you are about to disable keyboard inputs on your TAP</label>
+                <menu>
+                    <button value="cancel">Cancel</button>
+                    <button value="default">Continue</button>
+                </menu>
+            </form>
+        </dialog>
     </div>
 
     <div class="settingItem" id="keyboardOnlyBox">
@@ -217,6 +228,18 @@
             <input type="checkbox" id="keyboardOnlySwitch">
             <span class="slider round"><span>
         </label>
+
+        <dialog id="keyboardOnlyDialog">
+            <form method="dialog">
+                <h1>Mouse Only</h1>
+                <label>you are about to disable mouse inputs on your TAP</label>
+                <menu>
+                    <button value="cancel">Cancel</button>
+                    <button value="default">Continue</button>
+                </menu>
+            </form>
+        </dialog>
+
     </div>
 
     <div class="settingItem" id="mouseAndKeyboardBox">
@@ -297,7 +320,7 @@
                 }
             }
             return this.m_bits;
-    }
+        }
 
         BitArray.prototype.getLength - function () { return this.m_bits.length; };
 
@@ -372,6 +395,23 @@
             return new BitArray(bits.length, bits);
         };
 
+        function saveSettings() {
+            // we need to put all the settings back into the bytes
+            var sendingArray = new Uint8Array(4);
+
+            var firstByte = 0;
+            firstByte += (leftHanded);
+            firstByte += (vibrationOff * 2);
+            firstByte += (mouseOnly * 4);
+            firstByte += (voiceOver * 8);
+            firstByte += (autoCorrection * 16);
+            firstByte += (scrollDirectionFlip * 32);
+            firstByte += (keyboardOnly * 64);
+            firstByte += (standbyModeEnabled * 128);
+            console.log("whole First byte is: " + firstByte);
+
+        }
+
         let DEVICE_INFORMATION = '0000180a-0000-1000-8000-00805f9b34fb';
         let BATTERY_SERVICE    = '0000180f-0000-1000-8000-00805f9b34fb';
         let TAP_SERVICE        = 'c3ff0001-1d8b-40fd-a56f-c7bd5d0f3370';
@@ -389,6 +429,22 @@
               error.preventDefault();
             }
         });
+
+        // all the variables here
+        var leftHanded = false;
+        var vibrationOff = false;
+        var standbyModeEnabled = false;
+        var doubleTapTimeout = 5;
+        var sleepAfterValue = 2;
+        var autoCorrection = false;
+        var mouseOnly = false;
+        var voiceOver = false;
+        var keyboardOnly = false;
+        var mouseAndKeyboard = true;
+        var mouseSensitivity = 5;
+        var scrollSensitivity = 5;
+        var scrollDirectionFlip = false;
+        var developerMode = false;
 
         var notFoundTxt = document.getElementById('notFound');
         notFoundTxt.style.display = "none";
@@ -466,6 +522,9 @@
         var developerModeBox = document.getElementById('developerModeBox');
         developerModeBox.style.display = "none";
         var developerModeSwitch = document.getElementById('developerModeSwitch');
+
+        var mouseOnlyDialog = document.getElementById('mouseOnlyDialog');
+        var keyboardOnlyDialog = document.getElementById('keyboardOnlyDialog');
 
         var savedDevice;
         var savedServer;
@@ -569,27 +628,34 @@
                 // we should have an array of values here to decoded
                 //var decoder = new TextDecoder("utf-8");
                 //let decoded = decoder.decode(value);
-                console.log('should be seeing something now...');
+                // console.log('should be seeing something now...');
                 //var bArray = BitArray(20, value);
                 let firstByte = value.getUint8(0);
                 var firstByteArray = new BitArray.shredWithSize(firstByte, 8);
-                console.log('got the first bitarray: ' + firstByteArray);
+                console.log("first byte is: " + firstByte);
+                // console.log('got the first bitarray: ' + firstByteArray);
                 // console.log('got the first bitarray2: ' + firstByteArray.toString());
-                console.log('first bit is leftHanded = ' + (firstByteArray[0] === BitArray._ON));
-
-                console.log('Left handed = ' + (firstByteArray[0] === BitArray._ON));
-                console.log('vibration off = ' + (firstByteArray[1] === BitArray._ON));
-                console.log('mouseOnly = ' + (firstByteArray[2] === BitArray._ON));
-                console.log('voiceOver = ' + (firstByteArray[3] === BitArray._ON));
-                console.log('autoCorrection = ' + (firstByteArray[4] === BitArray._ON));
-                console.log('scrollDirectionFlip = ' + (firstByteArray[5] === BitArray._ON));
-                console.log('keyboardOnly = ' + (firstByteArray[6] === BitArray._ON));
-                console.log('standbyEnabled = ' + (firstByteArray[7] === BitArray._ON));
+                leftHanded = (firstByteArray[0] === BitArray._ON);
+                console.log('Left handed = ' + leftHanded);
+                vibrationOff = (firstByteArray[1] === BitArray._ON);
+                console.log('vibration off = ' + vibrationOff);
+                mouseOnly = (firstByteArray[2] === BitArray._ON);
+                console.log('mouseOnly = ' + mouseOnly);
+                voiceOver = (firstByteArray[3] === BitArray._ON);
+                console.log('voiceOver = ' + voiceOver);
+                autoCorrection = (firstByteArray[4] === BitArray._ON);
+                console.log('autoCorrection = ' + autoCorrection);
+                scrollDirectionFlip = (firstByteArray[5] === BitArray._ON)
+                console.log('scrollDirectionFlip = ' + scrollDirectionFlip);
+                keyboardOnly = (firstByteArray[6] === BitArray._ON);
+                console.log('keyboardOnly = ' + keyboardOnly);
+                standbyModeEnabled = (firstByteArray[7] === BitArray._ON);
+                console.log('standbyEnabled = ' + standbyModeEnabled);
 
                 let secondByte = value.getUint8(1);
                 let secondByteArray = new BitArray.shredWithSize(secondByte, 8);
-                console.log('got the second bitarray: ' + secondByteArray);
-                var mouseSensitivity = 0;
+                // console.log('got the second bitarray: ' + secondByteArray);
+                mouseSensitivity = 0;
                 var multiplier = 1;
                 for (var n = 0; n < 4; n++) {
                     mouseSensitivity += (secondByteArray[n] * multiplier);
@@ -597,7 +663,7 @@
                 }
                 console.log('mouseSensitivity = ' + mouseSensitivity);
 
-                var scrollSensitivity = 0;
+                scrollSensitivity = 0;
                 multiplier = 1;
                 for (var n = 4; n < 8; n++) {
                     scrollSensitivity += (secondByteArray[n] * multiplier);
@@ -607,8 +673,8 @@
 
                 let thirdByte = value.getUint8(2);
                 let thirdByteArray = new BitArray.shredWithSize(thirdByte, 8);
-                console.log('got the third bitarray: ' + thirdByteArray);
-                var doubleTapTimeout = 0;
+                // console.log('got the third bitarray: ' + thirdByteArray);
+                doubleTapTimeout = 0;
                 multiplier = 1;
                 for (var n = 0; n < 4; n++) {
                     doubleTapTimeout += (thirdByteArray[n] * multiplier);
@@ -621,42 +687,43 @@
                 console.log('airMouseTv = ' + (thirdByteArray[6] === BitArray._ON));
 
                 let fourthByte = value.getUint8(3);
-                let fourthBtyeArray = new BitArray.shredWithSize(fourthByte, 8);
-                console.log('got the fourth bitarray: ' + fourthBtyeArray);
-                var sleepTimeout = 0;
+                let fourthByteArray = new BitArray.shredWithSize(fourthByte, 8);
+                // console.log('got the fourth bitarray: ' + fourthByteArray);
+                sleepAfterValue = 0;
                 multiplier = 1;
                 for (var n = 0; n < 6; n++) {
-                    sleepTimeout += (fourthBtyeArray[n] * multiplier);
+                    sleepAfterValue += (fourthByteArray[n] * multiplier);
                     multiplier = multiplier * 2;
                 }
-                console.log('sleepTimeout = ' + sleepTimeout);
-
-                console.log('developerMode = ' + (fourthBtyeArray[6] === BitArray._ON));
+                console.log('sleepTimeout = ' + sleepAfterValue);
+                developerMode = (fourthByteArray[6] === BitArray._ON);
+                console.log('developerMode = ' + developerMode);
 
 
                 // let stringValue = value.toString();
                 generalHeader.style.display = "block";
                 // checkUpdatesBox.style.display = "block";
                 leftHandBox.style.display = "block";
-                leftHandedSwitch.checked = (firstByteArray[0] === BitArray._ON);
+                leftHandedSwitch.checked = leftHanded;
                 vibrationBox.style.display = "block";
-                vibrationSwitch.checked = (firstByteArray[1] === BitArray._ON);
+                vibrationSwitch.checked = vibrationOff;
                 standbyBox.style.display = "block";
-                standbySwitch.checked = (firstByteArray[7] === BitArray._ON);
+                standbySwitch.checked = standbyModeEnabled;
                 doubleTapTimeoutBox.style.display = "block";
                 doubleTapTimeoutSlider.value = doubleTapTimeout;
                 sleepAfterBox.style.display = "block";
-                sleepSelector.value = sleepTimeout;
+                sleepSelector.value = sleepAfterValue;
                 textHeader.style.display = "block";
                 autoCorrectionBox.style.display = "block";
-                autoCorrectionSwitch.checked = (firstByteArray[4] === BitArray._ON);
+                autoCorrectionSwitch.checked = autoCorrection;
                 inputHeader.style.display = "block";
                 mouseOnlyBox.style.display = "block";
-                mouseOnlySwitch.checked = (firstByteArray[2] === BitArray._ON);
+                mouseOnlySwitch.checked = mouseOnly;
                 keyboardOnlyBox.style.display = "block";
-                keyboardOnlySwitch.checked = (firstByteArray[6] === BitArray._ON);
+                keyboardOnlySwitch.checked = keyboardOnly;
                 mouseAndKeyboardBox.style.display = "block";
-                mouseAndKeyboardSwitch.checked = !((firstByteArray[2] === BitArray._ON) || (firstByteArray[6] === BitArray._ON));
+                mouseAndKeyboard = !(mouseOnly || keyboardOnly);
+                mouseAndKeyboardSwitch.checked = mouseAndKeyboard;
                 // customMappingHeader.style.display = "block";
                 // tapMappingBox.style.display = "block";
                 mouseHeader.style.display = "block";
@@ -665,26 +732,152 @@
                 scrollSensitivityBox.style.display = "block";
                 scrollSensitivitySlider.value = scrollSensitivity;
                 scrollDirectionFlipBox.style.display = "block";
-                scrollDirectionFlipSwitch.checked = (firstByteArray[5] === BitArray._ON);
+                scrollDirectionFlipSwitch.checked = scrollDirectionFlip;
                 developmentHeader.style.display = "block";
                 developerModeBox.style.display = "block";
-                developerModeSwitch.checked = (fourthBtyeArray[6] === BitArray._ON);
-                console.log('> Gonna fail now');
-                return savedServer;
-            }).then (server => {
-                console.log('Getting battery service...');
-                return server.getPrimaryService(BATTERY_SERVICE);
-            }).then (service => {
-                console.log('Getting battery characteristic');
-                return service.getCharacteristic(BATTERY_LEVEL);
-            }).then (characteristic => {
-                console.log('Reading battery level...');
-                return characteristic.readValue();
+                developerModeSwitch.checked = developerMode;
+                console.log('> Go to waiting loop');
+                return value;
             }).then(value => {
-                let batteryLevel = value.getUint8(0);
-                console.log('Battery level is: ' + batteryLevel + '%');
+                // ok let's set up the work to set the values when people change
+                // values on the screen
+                leftHandedSwitch.oninput = function() {
+                    leftHanded = this.checked;
+                    console.log("lefthanded now equals: " + leftHanded);
+                    saveSettings();
+                }
+
+                vibrationSwitch.oninput = function() {
+                    vibrationOff = this.checked;
+                    console.log("vibrationOff now equals: " + vibrationOff);
+                    saveSettings();
+                }
+
+                standbySwitch.oninput = function() {
+                    standbyEnabled = this.checked;
+                    console.log("standbyEnabled now equals: " + standbyEnabled);
+                    saveSettings();
+                }
+
+                doubleTapTimeoutSlider.oninput = function() {
+                    doubleTapTimeout = this.value;
+                    console.log("doubleTapTimeout now equals: " + doubleTapTimeout);
+                    saveSettings();
+                }
+
+                sleepSelector.oninput = function() {
+                    sleepAfterValue = this.value;
+                    console.log("sleepAfterValue now equals: " + sleepAfterValue);
+                    saveSettings();
+                }
+
+                autoCorrectionSwitch.oninput = function() {
+                    autoCorrection = this.checked;
+                    console.log("autoCorrection now equals: " + autoCorrection);
+                    saveSettings();
+                }
+
+                mouseOnlySwitch.oninput = function() {
+                    mouseOnly = this.checked;
+                    console.log("mouseOnly now equals: " + mouseOnly);
+                    if (mouseOnly) {
+                        // we just set it to true, need to ask in a dialog
+                        mouseOnlyDialog.showModal();
+                        mouseOnlyDialog.addEventListener('close', function onClose() {
+                            if (mouseOnlyDialog.returnValue == 'cancel') {
+                                console.log("we got cancelled!");
+                                mouseOnlySwitch.checked = false;
+                                mouseOnly = false
+                            } else {
+                                keyboardOnlySwitch.checked = false;
+                                keyboardOnly = false;
+                            }
+                            console.log(mouseOnlyDialog.returnValue + " button clicked");
+                            console.log("keyboardOnly now equals: " + keyboardOnly);
+                            mouseAndKeyboard = !(mouseOnly || keyboardOnly);
+                            console.log("mouseandKeyboard now equals: " + mouseAndKeyboard);
+                            mouseAndKeyboardSwitch.checked = mouseAndKeyboard;
+                            saveSettings();
+                        });
+                    } else {
+                        // just turned off mouseOnly - we turn on maouse and keyboard automatically
+                        mouseAndKeyboard = !(mouseOnly || keyboardOnly);
+                        mouseAndKeyboardSwitch.checked = mouseAndKeyboard;
+                        saveSettings();
+                    }
+                }
+
+                keyboardOnlySwitch.oninput = function() {
+                    keyboardOnly = this.checked;
+                    console.log("keyboardOnly now equals: " + keyboardOnly);
+                    if (keyboardOnly) {
+                        // we just set it to true, need to ask in a dialog
+                        keyboardOnlyDialog.showModal();
+                        keyboardOnlyDialog.addEventListener('close', function onClose() {
+                            if (keyboardOnlyDialog.returnValue == 'cancel') {
+                                console.log("we got cancelled!");
+                                keyboardOnlySwitch.checked = false;
+                                keyboardOnly = false
+                            } else {
+                                mouseOnlySwitch.checked = false;
+                                mouseOnly = false;
+                            }
+                            console.log(keyboardOnlyDialog.returnValue + " button clicked");
+                            console.log("mouseOnly now equals: " + mouseOnly);
+                            mouseAndKeyboard = !(mouseOnly || keyboardOnly);
+                            console.log("mouseandKeyboard now equals: " + mouseAndKeyboard);
+                            mouseAndKeyboardSwitch.checked = mouseAndKeyboard;
+                            saveSettings();
+                        });
+                    } else {
+                        // just turned off keyboardeOnly - we turn on maouse and keyboard automatically
+                        mouseAndKeyboard = !(mouseOnly || keyboardOnly);
+                        mouseAndKeyboardSwitch.checked = mouseAndKeyboard;
+                        saveSettings();
+                    }
+                }
+
+                mouseAndKeyboardSwitch.oninput = function() {
+                    mouseAndKeyboard = this.checked;
+                    console.log("mouseAndKeyboard now equals: " + mouseAndKeyboard);
+                    if (mouseAndKeyboard) {
+                        keyboardOnlySwitch.checked = false;
+                        keyboardOnly = false
+                        mouseOnlySwitch.checked = false;
+                        mouseOnly = false;
+                        saveSettings();
+                    } else {
+                        // just turned off mouseAndKeyboard - we turn on maouseOnly automatically
+                        mouseOnlySwitch.checked = true;
+                        saveSettings();
+                    }
+                }
+
             }).catch (error => {
                 notFoundTxt.style.display = "block";
+
+                generalHeader.style.display = "none";
+                // checkUpdatesBox.style.display = "block";
+                leftHandBox.style.display = "none";
+                vibrationBox.style.display = "none";
+                standbyBox.style.display = "none";
+                doubleTapTimeoutBox.style.display = "none";
+                sleepAfterBox.style.display = "none";
+                textHeader.style.display = "none";
+                autoCorrectionBox.style.display = "none";
+                inputHeader.style.display = "none";
+                mouseOnlyBox.style.display = "none";
+                keyboardOnlyBox.style.display = "none";
+                mouseAndKeyboardBox.style.display = "none";
+                // customMappingHeader.style.display = "none";
+                // tapMappingBox.style.display = "none";
+                mouseHeader.style.display = "none";
+                mouseSensitivityBox.style.display = "none";
+                scrollSensitivityBox.style.display = "none";
+                scrollDirectionFlipBox.style.display = "none";
+                developmentHeader.style.display = "none";
+                developerModeBox.style.display = "none";
+
                 console.log('Argh! ' + error);
             });
 
