@@ -155,6 +155,29 @@
             <input type="checkbox" id="leftHandedSwitch">
             <span class="slider round"><span>
         </label>
+
+        <dialog id="leftHandedDialog">
+            <form method="dialog">
+                <h1>Left-handed</h1>
+                <label>You're about to switch your TAP to left-handed usage.</label>
+                <menu>
+                    <button value="cancel">Cancel</button>
+                    <button value="default">Continue</button>
+                </menu>
+            </form>
+        </dialog>
+
+        <dialog id="rightHandedDialog">
+            <form method="dialog">
+                <h1>Right-handed</h1>
+                <label>You're about to switch your TAP to right-handed usage.</label>
+                <menu>
+                    <button value="cancel">Cancel</button>
+                    <button value="default">Continue</button>
+                </menu>
+            </form>
+        </dialog>
+
     </div>
 
     <div class="settingItem" id="vibrationBox">
@@ -163,6 +186,17 @@
             <input type="checkbox" id="vibrationSwitch">
             <span class="slider round"><span>
         </label>
+
+        <dialog id="vibrationsOffDialog">
+            <form method="dialog">
+                <h1>Vibration</h1>
+                <label>You're about to turn off vibrations on your TAP.</label>
+                <menu>
+                    <button value="cancel">Cancel</button>
+                    <button value="default">Continue</button>
+                </menu>
+            </form>
+        </dialog>
     </div>
 
     <div class="settingItem" id="standbyModeBox">
@@ -171,6 +205,18 @@
             <input type="checkbox" id="standbyEnabledSwitch">
             <span class="slider round"><span>
         </label>
+        <p>Double Tap 4 fingers (index to pinky) in mouse mode to toggle "standby mode"</p>
+
+        <dialog id="standbyOnDialog">
+            <form method="dialog">
+                <h1>Standby Mode</h1>
+                <label>You're about to enable standby mode. Standby mode keeps your Tap connected without sending input to your device.</label>
+                <menu>
+                    <button value="cancel">Cancel</button>
+                    <button value="default">Continue</button>
+                </menu>
+            </form>
+        </dialog>
     </div>
 
     <div class="settingItem" id="doubleTapTimeoutBox">
@@ -423,10 +469,21 @@
 
         function saveSettings() {
             // we need to put all the settings back into the bytes
-            var sendingArray = new Uint8Array(4);
+            var sendingArray = new Uint8Array(20);
+            for (var i = 0; i < 20; i++) {
+                sendingArray[i] = 0;
+            }
+
+            // var arrayStr = "";
+            // for (var i = 0; i < 20; i++) {
+            //     arrayStr += sendingArray[i];
+            //     arrayStr += ".";
+            // }
+            // console.log("contents at beginning = " + arrayStr);
 
             var firstByte = 0;
             firstByte += (leftHanded);
+            var vibrationOff = !vibration;
             firstByte += (vibrationOff * 2);
             firstByte += (mouseOnly * 4);
             firstByte += (voiceOver * 8);
@@ -457,12 +514,31 @@
             console.log("whole fourth byte is " + fourthByte);
             sendingArray[3] = fourthByte;
 
+            console.log("array here is " + sendingArray);
+            // var dv = new DataView(sendingArray);
+            // console.log("object here is " + dv);
+            // arrayStr = "";
+            // for (var i = 0; i < 20; i++) {
+            //     arrayStr += sendingArray[i];
+            //     arrayStr += ".";
+            // }
+            // console.log("coantents of dataview = " + arrayStr);
+
             console.log('> Characteristic UUID:  ' + savedSettingsCharacteristic.uuid);
-            savedSettingsCharacteristic.writeValueWithoutResponse(sendingArray).then (
-                function() {
-                    console.log("got here");
-                }
-            );
+            // savedSettingsCharacteristic.writeValueWithoutResponse(sendingArray).then (
+            // savedSettingsCharacteristic.writeValueWithResponse(dv).then (
+            //     response => {
+            //         console.log("got here");
+            //     }
+            // );
+            savedSettingsCharacteristic.writeValueWithResponse(sendingArray).then( stuff=> {
+            //savedSettingsCharacteristic.writeValue(dv).then( stuff=> {
+                console.log("here it is " + stuff);
+            }).catch (error => {
+                console.log('Argh! Cant send!!! ' + error.message);
+                console.log('it is all over now');
+            });
+
             console.log("Woo, we did the settings");
         }
 
@@ -512,7 +588,7 @@
 
         // all the variables here
         var leftHanded = false;
-        var vibrationOff = false;
+        var vibration = true;
         var standbyModeEnabled = false;
         var doubleTapTimeout = 5;
         var airMouse = false;
@@ -606,6 +682,10 @@
         developerModeBox.style.display = "none";
         var developerModeSwitch = document.getElementById('developerModeSwitch');
 
+        var leftHandedDialog = document.getElementById('leftHandedDialog');
+        var rightHandedDialog = document.getElementById('rightHandedDialog');
+        var vibrationsOffDialog = document.getElementById('vibrationsOffDialog');
+        var standbyOnDialog = document.getElementById('standbyOnDialog');
         var mouseOnlyDialog = document.getElementById('mouseOnlyDialog');
         var keyboardOnlyDialog = document.getElementById('keyboardOnlyDialog');
         var developerModeDialog = document.getElementById('developerModeDialog');
@@ -698,7 +778,6 @@
                 return service.getCharacteristic(HARDWARE_REVISION_STRING);
             }).then (characteristic => {
                 // console.log('Reading characteristic info...');
-                savedSettingsCharacteristic = characteristic;
                 return characteristic.readValue();
             }).then(value => {
                 var decoder = new TextDecoder("utf-8");
@@ -714,8 +793,10 @@
                 return service.getCharacteristic(SETTINGS);
             }).then (characteristic => {
                 console.log('Reading settings info...');
+                savedSettingsCharacteristic = characteristic;
                 return characteristic.readValue();
             }).then(value => {
+                console.log("value here is " + value);
                 // we should have an array of values here to decoded
                 //var decoder = new TextDecoder("utf-8");
                 //let decoded = decoder.decode(value);
@@ -729,7 +810,9 @@
                 leftHanded = (firstByteArray[0] === BitArray._ON);
                 // console.log('Left handed = ' + leftHanded);
                 vibrationOff = (firstByteArray[1] === BitArray._ON);
+                vibration = !vibrationOff;
                 // console.log('vibration off = ' + vibrationOff);
+                // console.log('vibration = ' + vibration);
                 mouseOnly = (firstByteArray[2] === BitArray._ON);
                 // console.log('mouseOnly = ' + mouseOnly);
                 voiceOver = (firstByteArray[3] === BitArray._ON);
@@ -803,7 +886,7 @@
                 leftHandBox.style.display = "block";
                 leftHandedSwitch.checked = leftHanded;
                 vibrationBox.style.display = "block";
-                vibrationSwitch.checked = vibrationOff;
+                vibrationSwitch.checked = vibration;
                 standbyBox.style.display = "block";
                 standbySwitch.checked = standbyModeEnabled;
                 doubleTapTimeoutBox.style.display = "block";
@@ -840,20 +923,76 @@
                 // values on the screen
                 leftHandedSwitch.oninput = function() {
                     leftHanded = this.checked;
-                    console.log("lefthanded now equals: " + leftHanded);
-                    saveSettings();
+
+                    if (leftHanded) {
+                        // we just set it to true, need to ask in a dialog
+                        leftHandedDialog.showModal();
+                        leftHandedDialog.addEventListener('close', function onClose() {
+                            if (leftHandedDialog.returnValue == 'cancel') {
+                                console.log("we got cancelled!");
+                                leftHandedSwitch.checked = false;
+                                leftHanded = false
+                            } else {
+                                console.log("lefthanded now equals: " + leftHanded);
+                                saveSettings();
+                            }
+                        });
+                    } else {
+                        rightHandedDialog.showModal();
+                        rightHandedDialog.addEventListener('close', function onClose() {
+                            if (rightHandedDialog.returnValue == 'cancel') {
+                                console.log("we got cancelled!");
+                                leftHandedSwitch.checked = true;
+                                leftHanded = true
+                            } else {
+                                console.log("lefthanded now equals: " + leftHanded);
+                                saveSettings();
+                            }
+                        });
+                    }
                 }
 
                 vibrationSwitch.oninput = function() {
-                    vibrationOff = this.checked;
-                    console.log("vibrationOff now equals: " + vibrationOff);
-                    saveSettings();
+                    vibration = this.checked;
+
+                    if (!vibration) {
+                        // we just set it to true, need to ask in a dialog
+                        vibrationsOffDialog.showModal();
+                        vibrationsOffDialog.addEventListener('close', function onClose() {
+                            if (vibrationsOffDialog.returnValue == 'cancel') {
+                                console.log("we got cancelled!");
+                                vibrationSwitch.checked = true;
+                                vibration = true
+                            } else {
+                                console.log("vibration now equals: " + vibration);
+                                saveSettings();
+                            }
+                        });
+                    } else {
+                        console.log("vibration now equals: " + vibration);
+                        saveSettings();
+                    }
                 }
 
                 standbySwitch.oninput = function() {
                     standbyEnabled = this.checked;
-                    console.log("standbyEnabled now equals: " + standbyEnabled);
-                    saveSettings();
+                    if (standbyEnabled) {
+                        // we just set it to true, need to ask in a dialog
+                        standbyOnDialog.showModal();
+                        standbyOnDialog.addEventListener('close', function onClose() {
+                            if (standbyOnDialog.returnValue == 'cancel') {
+                                console.log("we got cancelled!");
+                                standbySwitch.checked = false;
+                                standbyEnabled = false
+                            } else {
+                                console.log("standbyEnabled now equals: " + standbyEnabled);
+                                saveSettings();
+                            }
+                        });
+                    } else {
+                        console.log("standbyEnabled now equals: " + standbyEnabled);
+                        saveSettings();
+                    }
                 }
 
                 doubleTapTimeoutSlider.oninput = function() {
@@ -995,7 +1134,8 @@
             }).catch (error => {
                 disconnected();
 
-                console.log('Argh! ' + error);
+                console.log('Argh! ' + error.message);
+                console.log('it is all over now');
             });
 
         });
