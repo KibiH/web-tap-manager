@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600" rel="stylesheet">
   <head>
     <meta charset="utf-8">
 
@@ -7,7 +8,87 @@
 
     <style>
       html {
-        font-family: sans-serif;
+        font-family: Open Sans;
+      }
+
+      h1 {
+          font-family: "Open Sans";
+          font-size: 44px;
+          font-style: normal;
+          font-variant: normal;
+          font-weight: 300;
+          line-height: 26.4px;
+          color: #707070;
+         }
+
+      h2 {
+           font-family: "Open Sans";
+           font-size: 24px;
+           font-style: Semibold;
+           font-variant: normal;
+           font-weight: 800;
+           line-height: 15.4px;
+           color: #707070;
+         }
+
+      h3 {
+              font-family: "Open Sans";
+              font-size: 18px;
+              font-style: Semibold;
+              font-variant: normal;
+              font-weight: 800;
+              line-height: 15.4px;
+              color: #707070;
+         }
+
+        h4 {
+                 font-family: "Open Sans";
+                 font-size: 20px;
+                 font-style: normal;
+                 font-variant: normal;
+                 font-weight: 700;
+                 line-height: 15.4px;
+                 color: #707070;
+            }
+
+       p {
+            font-family: "Open Sans";
+            font-size: 14px;
+            font-style: normal;
+            font-variant: normal;
+            font-weight: 400;
+            line-height: 20px;
+         }
+
+        blockquote {
+            font-family: "Open Sans";
+            font-size: 21px;
+            font-style: normal;
+            font-variant: normal;
+            font-weight: 400;
+            line-height: 30px;
+         }
+
+        pre {
+            font-family: "Open Sans";
+            font-size: 13px;
+            font-style: normal;
+            font-variant: normal;
+            font-weight: 400;
+            line-height: 18.5714px;
+      }
+
+      button {
+          background-color: #33A2DC;
+          color: white;
+          font-family: "Open Sans";
+          font-size: 21px;
+          font-style: Semibold;
+          font-variant: Semibold;
+          font-weight: 600;
+          line-height: 30px;
+          border: none;
+          padding: 5px;
       }
 
       body {
@@ -15,20 +96,21 @@
         max-width: 800px;
         min-width: 480px;
         margin: 0 auto;
+        background-color: #F2F3F7;
       }
 
       .settingItem {
           display: flex;
           justify-content: space-between;
-          border: 1px solid black;
+          border: 1px solid #DFE1E8;
           padding: 5px;margin:10px;
       }
 
       .switch {
         position: relative;
         display: inline-block;
-        width: 42px;
-        height: 24px;
+        width: 50px;
+        height: 31px;
       }
 
       .switch input {
@@ -44,7 +126,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background-color: #ccc;
+        background-color: #C7CAD5;
         -webkit-transition: .4s;
         transition: .4s;
       }
@@ -52,32 +134,34 @@
       .slider:before {
         position: absolute;
         content: "";
-        height: 18px;
-        width: 18px;
-        left: 4px;
-        bottom: 4px;
+        height: 26px;
+        width: 26px;
+        left: 2px;
+        /* bottom: 1px; */
+        top: 2px;
+        /* right: 1px; */
         background-color: white;
         -webkit-transition: .4s;
         transition: .4s;
       }
 
       input:checked + .slider {
-        background-color: #2196F3;
+        background-color: #33A2DC;
       }
 
       input:focus + .slider {
-        box-shadow: 0 0 1px #2196F3;
+        box-shadow: 0 0 1px #33A2DC;
       }
 
       input:checked + .slider:before {
-        -webkit-transform: translateX(18px);
-        -ms-transform: translateX(18px);
-        transform: translateX(18px);
+        -webkit-transform: translateX(20px);
+        -ms-transform: translateX(20px);
+        transform: translateX(20px);
       }
 
       /* Rounded sliders */
       .slider.round {
-        border-radius: 24px;
+        border-radius: 30px;
       }
 
       .slider.round:before {
@@ -129,28 +213,22 @@
     </style>
   </head>
   <body>
-    <h1>We are going to connect to your Tap</h1>
-
-    <p>When you press the button we will search for Tap devices nearby</p>
-
-    <!-- <div class="form">
-      <label for="macField">Enter a macId: </label>
-      <input type="text" id="macField" class="macField">
-      <input type="submit" value="Search for Taps" class="findTaps">
-    </div> -->
+    <h1 id="title">Welcome to TapManager Web</h1>
+    <h2 id="tapName"></h2>
+    <!-- <p>When you press the button we will search for Tap devices nearby</p> -->
 
     <button id="searchDevicesBtn">Search for Tap </button>
 
     <div id="notFound"> No devices found, please try again</div>
     <p>
-    <div id="general"> General:</div>
+    <h3 id="general"> General:</h3>
     <div class="settingItem" id="checkForUpdates">
         <div>Check for updates</div>
         <button id="checkButton">Check</button>
     </div>
 
     <div class="settingItem" id="leftHandedBox">
-        <div>Left Handed</div>
+        <h4>Left Handed</h4>
         <label class="switch">
             <input type="checkbox" id="leftHandedSwitch">
             <span class="slider round"><span>
@@ -514,35 +592,24 @@
             console.log("whole fourth byte is " + fourthByte);
             sendingArray[3] = fourthByte;
 
-            console.log("array here is " + sendingArray);
-            // var dv = new DataView(sendingArray);
-            // console.log("object here is " + dv);
-            // arrayStr = "";
-            // for (var i = 0; i < 20; i++) {
-            //     arrayStr += sendingArray[i];
-            //     arrayStr += ".";
-            // }
-            // console.log("coantents of dataview = " + arrayStr);
+            // console.log("array here is " + sendingArray);
 
-            console.log('> Characteristic UUID:  ' + savedSettingsCharacteristic.uuid);
-            // savedSettingsCharacteristic.writeValueWithoutResponse(sendingArray).then (
-            // savedSettingsCharacteristic.writeValueWithResponse(dv).then (
-            //     response => {
-            //         console.log("got here");
-            //     }
-            // );
+            // console.log('> Characteristic UUID:  ' + savedSettingsCharacteristic.uuid);
+
             savedSettingsCharacteristic.writeValueWithResponse(sendingArray).then( stuff=> {
-            //savedSettingsCharacteristic.writeValue(dv).then( stuff=> {
-                console.log("here it is " + stuff);
+                // console.log("here it is " + stuff);
             }).catch (error => {
                 console.log('Argh! Cant send!!! ' + error.message);
                 console.log('it is all over now');
             });
 
-            console.log("Woo, we did the settings");
         }
 
         function disconnected() {
+            title.innerHTML = "Welcome to TapManager Web";
+            searchBtn.style.display = "block";
+            tapName.style.display = "none";
+
             notFoundTxt.style.display = "block";
 
             generalHeader.style.display = "none";
@@ -604,6 +671,12 @@
         var scrollSensitivity = 5;
         var scrollDirectionFlip = false;
         var developerMode = false;
+
+        var title = document.getElementById('title');
+
+        var deviceName;
+        var tapName = document.getElementById('tapName');
+        tapName.style.display = "none";
 
         var notFoundTxt = document.getElementById('notFound');
         notFoundTxt.style.display = "none";
@@ -712,40 +785,12 @@
             console.log('Requesting TAP device...');
 
             navigator.bluetooth.requestDevice(options).then(device => {
+                deviceName = device.name;
                 console.log('> Name:       ' + device.name);
                 console.log('> Id:         ' + device.id);
                 console.log('> Connected:  ' + device.gatt.connected);
                 savedDevice = device;
                 return device;
-            // }).
-            //
-            // navigator.bluetooth.getDevices(options).then(devices => {
-            //     console.log('we got here!');
-            //     if (devices.length == 0) {
-            //         console.log('got here - none found');
-            //     }
-            //     let i = 0;
-            //
-            //     while (i < devices.length) {
-            //         console.log('We found a device!');
-            //         console.log('> Name:       ' + devices[i].name);
-            //         console.log('> Id:         ' + devices[i].id);
-            //         console.log('> Connected:  ' + devices[i].gatt.connected);
-            //         if (devices[i].name.startsWith("Tap")) {
-            //             let connected = devices[i].gatt.connect();
-            //             connected.then(server => {
-            //                 console.log("Connected to device = " + server.device.name);
-            //                 return server;
-            //             }).catch (error => {
-            //                 console.log("Error connecting: " + error);
-            //             });
-            //             // if we get here try the next
-            //         }
-            //         i++;
-            //     }
-            //     // so if we got here w got nothing to connect to
-            //     console.log('found nothing at all to connect to!');
-            //     notFoundTxt.style.display = "block";
             }).then (device => {
                 console.log('Here we are connecting to ' + device.name);
                 device.addEventListener('gattserverdisconnected', function() {
@@ -767,7 +812,7 @@
             }).then ( value => {
                 var decoder = new TextDecoder("utf-8");
                 let decoded = decoder.decode(value);
-                // let stringValue = value.toString();
+                let stringValue = value.toString();
                 // console.log('> Firmware string is ' + decoded);
                 return savedServer;
             }).then (server => {
@@ -782,7 +827,7 @@
             }).then(value => {
                 var decoder = new TextDecoder("utf-8");
                 let decoded = decoder.decode(value);
-                // let stringValue = value.toString();
+                let stringValue = value.toString();
                 // console.log('> Hardware string is ' + decoded);
                 return savedServer;
             }).then (server => {
@@ -792,20 +837,16 @@
                 // console.log('Getting settings characteristic');
                 return service.getCharacteristic(SETTINGS);
             }).then (characteristic => {
-                console.log('Reading settings info...');
+                // console.log('Reading settings info...');
                 savedSettingsCharacteristic = characteristic;
                 return characteristic.readValue();
             }).then(value => {
-                console.log("value here is " + value);
+                // console.log("value here is " + value);
                 // we should have an array of values here to decoded
-                //var decoder = new TextDecoder("utf-8");
-                //let decoded = decoder.decode(value);
-                // console.log('should be seeing something now...');
-                //var bArray = BitArray(20, value);
                 let firstByte = value.getUint8(0);
                 var firstByteArray = new BitArray.shredWithSize(firstByte, 8);
                 console.log("first byte is: " + firstByte);
-                // console.log('got the first bitarray: ' + firstByteArray);
+                console.log('got the first bitarray: ' + firstByteArray);
                 // console.log('got the first bitarray2: ' + firstByteArray.toString());
                 leftHanded = (firstByteArray[0] === BitArray._ON);
                 // console.log('Left handed = ' + leftHanded);
@@ -879,7 +920,10 @@
                 developerMode = (fourthByteArray[6] === BitArray._ON);
                 // console.log('developerMode = ' + developerMode);
 
-
+                title.innerHTML = "Tap Strap connected";
+                searchBtn.style.display = "none";
+                tapName.style.display = "block";
+                tapName.innerHTML = deviceName;
                 // let stringValue = value.toString();
                 generalHeader.style.display = "block";
                 // checkUpdatesBox.style.display = "block";
