@@ -79,7 +79,7 @@
             font-style: normal;
             font-variant: normal;
             font-weight: 400;
-            line-height: 20px;
+            line-height: 16px;
         }
 
         blockquote {
@@ -157,6 +157,17 @@
 
         .settingItem {
             height: 34px;
+            display: flex;
+            justify-content: space-between;
+            white-space: nowrap;
+            border: 1px solid #DFE1E8;
+            padding: 5px;
+            margin: 3px;
+            overflow-x: auto;
+        }
+
+        .settingItemDoubleHeight {
+            height: 78px;
             display: flex;
             justify-content: space-between;
             white-space: nowrap;
@@ -374,7 +385,7 @@
                 </dialog>
             </div>
 
-            <div class="settingItem" id="standbyModeBox">
+            <div class="settingItemDoubleHeight" id="standbyModeBox">
                 <mylabel>Standby Mode Enabled</mylabel>
                 <label class="switch">
                     <input type="checkbox" id="standbyEnabledSwitch">
@@ -513,6 +524,32 @@
                 <mylabel>Scroll Direction Flip</mylabel>
                 <label class="switch">
                     <input type="checkbox" id="scrollDirectionFlipSwitch">
+                    <span class="slider round"><span>
+                </label>
+            </div>
+
+            <h3 id="airgestures"> Air Gestures:</h3>
+
+            <div class="settingItem" id="airMouseBox">
+                <mylabel>Air Mouse</mylabel>
+                <label class="switch">
+                    <input type="checkbox" id="airMouseSwitch">
+                    <span class="slider round"><span>
+                </label>
+            </div>
+
+            <div class="settingItem" id="mediaControlBox">
+                <mylabel>Media Control</mylabel>
+                <label class="switch">
+                    <input type="checkbox" id="mediaControlSwitch">
+                    <span class="slider round"><span>
+                </label>
+            </div>
+
+            <div class="settingItem" id="smartTVControlBox">
+                <mylabel>Smart TV Control</mylabel>
+                <label class="switch">
+                    <input type="checkbox" id="smartTVControlSwitch">
                     <span class="slider round"><span>
                 </label>
             </div>
@@ -684,13 +721,13 @@
             firstByte += (scrollDirectionFlip * 32);
             firstByte += (keyboardOnly * 64);
             firstByte += (standbyModeEnabled * 128);
-            console.log("whole First byte is: " + firstByte);
+            // console.log("whole First byte is: " + firstByte);
             sendingArray[0] = firstByte;
 
             var secondByte = 0;
             secondByte += mouseSensitivity;
             secondByte += (scrollSensitivity * 16);
-            console.log("whole second byte is " + secondByte);
+            // console.log("whole second byte is " + secondByte);
             sendingArray[1] = secondByte;
 
             var thirdByte = 0;
@@ -698,13 +735,13 @@
             thirdByte += (airMouse * 16);
             thirdByte += (airMouseMedia * 32);
             thirdByte += (airMouseTv * 64);
-            console.log("whole third byte is " + thirdByte);
+            // console.log("whole third byte is " + thirdByte);
             sendingArray[2] = thirdByte;
 
             var fourthByte = 0;
             fourthByte += sleepAfterValue;
             fourthByte += (developerMode * 64);
-            console.log("whole fourth byte is " + fourthByte);
+            // console.log("whole fourth byte is " + fourthByte);
             sendingArray[3] = fourthByte;
 
             // console.log("array here is " + sendingArray);
@@ -746,6 +783,10 @@
             mouseSensitivityBox.style.display = "none";
             scrollSensitivityBox.style.display = "none";
             scrollDirectionFlipBox.style.display = "none";
+            airGesturesHeader.style.display = "none";
+            airMouseBox.style.display = "none";
+            mediaControlBox.style.display = "none";
+            smartTVControlBox.style.display = "none";
             developmentHeader.style.display = "none";
             developerModeBox.style.display = "none";
         }
@@ -768,7 +809,51 @@
             }
         });
 
+        function formatToLength2(mynumber) {
+            var formattedNumber = ("0" + mynumber).slice(-2);
+            return formattedNumber;
+        }
+
+        function semVerToInt(semVer) {
+            const nums = semVer.split('.');
+
+            var major = "";
+            var minor = "";
+            var patch = "";
+
+            switch(nums.length) {
+                case 1:
+                    major = formatToLength2(nums[0]);
+                    minor = "00";
+                    patch = "00";
+                    break;
+                case 2:
+                    major = formatToLength2(nums[0]);
+                    minor = formatToLength2(nums[1]);
+                    patch = "00";
+                    break;
+                case 3:
+                    major = formatToLength2(nums[0]);
+                    minor = formatToLength2(nums[1]);
+                    patch = formatToLength2(nums[2]);
+                    break;
+                default:
+                    major = "00";
+                    minor = "00";
+                    patch = "00";
+                    break;
+            }
+
+            var ver = major + minor + patch;
+            console.log("verString = " + ver);
+            return parseInt(ver);
+        }
+
         // all the variables here
+        var hardwareVer = 0;
+        var firmwareVer = 0;
+        var supportsAirMouse = false;
+
         var leftHanded = false;
         var vibration = true;
         var standbyModeEnabled = false;
@@ -864,6 +949,20 @@
         scrollDirectionFlipBox.style.display = "none";
         var scrollDirectionFlipSwitch = document.getElementById('scrollDirectionFlipSwitch');
 
+        var airGesturesHeader = document.getElementById("airgestures");
+        airGesturesHeader.style.display = "none";
+        var airMouseBox = document.getElementById("airMouseBox");
+        airMouseBox.style.display = "none";
+        var airMouseSwitch = document.getElementById("airMouseSwitch");
+
+        var mediaControlBox = document.getElementById("mediaControlBox");
+        mediaControlBox.style.display = "none";
+        var mediaControlSwitch = document.getElementById("mediaControlSwitch");
+
+        var smartTVControlBox = document.getElementById("smartTVControlBox");
+        smartTVControlBox.style.display = "none";
+        var smartTVControlSwitch = document.getElementById("smartTVControlSwitch");
+
         var developmentHeader = document.getElementById('development');
         developmentHeader.style.display = "none";
         var developerModeBox = document.getElementById('developerModeBox');
@@ -929,8 +1028,10 @@
             }).then(value => {
                 var decoder = new TextDecoder("utf-8");
                 let decoded = decoder.decode(value);
-                let stringValue = value.toString();
-                // console.log('> Firmware string is ' + decoded);
+                var firmwareString = decoded;
+                console.log('> Firmware string is ' + firmwareString);
+                firmwareVer = semVerToInt(firmwareString);
+                console.log("Made to string = " + firmwareVer);
                 return savedServer;
             }).then(server => {
                 // console.log('Getting device info service again...');
@@ -944,8 +1045,18 @@
             }).then(value => {
                 var decoder = new TextDecoder("utf-8");
                 let decoded = decoder.decode(value);
-                let stringValue = value.toString();
-                // console.log('> Hardware string is ' + decoded);
+                var hardwareString = decoded;
+                console.log('> Hardware string is ' + hardwareString);
+                hardwareVer = semVerToInt(hardwareString);
+                console.log("Made to string = " + hardwareVer);
+
+                // set up support for airMouseTv
+                if (hardwareVer >= 30300 && firmwareVer >= 20000) {
+                    supportsAirMouse = true;
+                    console.log("We support AirMouse!");
+                } else {
+                    console.log("NO Airmouse support!");
+                }
                 return savedServer;
             }).then(server => {
                 // console.log('Getting TAP service ...');
@@ -962,8 +1073,8 @@
                 // we should have an array of values here to decoded
                 let firstByte = value.getUint8(0);
                 var firstByteArray = new BitArray.shredWithSize(firstByte, 8);
-                console.log("first byte is: " + firstByte);
-                console.log('got the first bitarray: ' + firstByteArray);
+                // console.log("first byte is: " + firstByte);
+                // console.log('got the first bitarray: ' + firstByteArray);
                 // console.log('got the first bitarray2: ' + firstByteArray.toString());
                 leftHanded = (firstByteArray[0] === BitArray._ON);
                 // console.log('Left handed = ' + leftHanded);
@@ -985,7 +1096,7 @@
                 // console.log('standbyEnabled = ' + standbyModeEnabled);
 
                 let secondByte = value.getUint8(1);
-                console.log("second byte is: " + secondByte);
+                // console.log("second byte is: " + secondByte);
                 let secondByteArray = new BitArray.shredWithSize(secondByte, 8);
                 // console.log('got the second bitarray: ' + secondByteArray);
                 mouseSensitivity = 0;
@@ -994,7 +1105,7 @@
                     mouseSensitivity += (secondByteArray[n] * multiplier);
                     multiplier = multiplier * 2;
                 }
-                console.log('mouseSensitivity = ' + mouseSensitivity);
+                // console.log('mouseSensitivity = ' + mouseSensitivity);
 
                 scrollSensitivity = 0;
                 multiplier = 1;
@@ -1002,10 +1113,10 @@
                     scrollSensitivity += (secondByteArray[n] * multiplier);
                     multiplier = multiplier * 2;
                 }
-                console.log('scrollSensitivity = ' + scrollSensitivity);
+                // console.log('scrollSensitivity = ' + scrollSensitivity);
 
                 let thirdByte = value.getUint8(2);
-                console.log("third byte is: " + thirdByte);
+                // console.log("third byte is: " + thirdByte);
                 let thirdByteArray = new BitArray.shredWithSize(thirdByte, 8);
                 // console.log('got the third bitarray: ' + thirdByteArray);
                 doubleTapTimeout = 0;
@@ -1024,7 +1135,7 @@
                 // console.log('airMouseTv = ' + airMouseTv);
 
                 let fourthByte = value.getUint8(3);
-                console.log("fourth byte is: " + fourthByte);
+                // console.log("fourth byte is: " + fourthByte);
                 let fourthByteArray = new BitArray.shredWithSize(fourthByte, 8);
                 // console.log('got the fourth bitarray: ' + fourthByteArray);
                 sleepAfterValue = 0;
@@ -1074,6 +1185,17 @@
                 scrollSensitivitySlider.value = scrollSensitivity;
                 scrollDirectionFlipBox.style.display = "block";
                 scrollDirectionFlipSwitch.checked = scrollDirectionFlip;
+
+                if (supportsAirMouse) {
+                    airGesturesHeader.style.display = "block";
+                    airMouseBox.style.display = "block";
+                    airMouseSwitch.checked = airMouse;
+                    mediaControlBox.style.display = "block";
+                    mediaControlSwitch.checked = airMouseMedia;
+                    smartTVControlBox.style.display = "block";
+                    smartTVControlSwitch.checked = airMouseTv;
+                }
+
                 developmentHeader.style.display = "block";
                 developerModeBox.style.display = "block";
                 developerModeSwitch.checked = developerMode;
@@ -1265,6 +1387,24 @@
                 scrollDirectionFlipSwitch.oninput = function() {
                     scrollDirectionFlip = this.checked;
                     console.log("scrollDirectionFlip now equals: " + scrollDirectionFlip);
+                    saveSettings();
+                }
+
+                airMouseSwitch.oninput = function() {
+                    airMouse = this.checked;
+                    console.log("airMouse now equals: " + airMouse);
+                    saveSettings();
+                }
+
+                mediaControlSwitch.oninput = function() {
+                    airMouseMedia = this.checked;
+                    console.log("airMouseMedia now equals: " + airMouseMedia);
+                    saveSettings();
+                }
+
+                smartTVControlSwitch.oninput = function() {
+                    airMouseTv = this.checked;
+                    console.log("airMouseTv now equals: " + airMouseTv);
                     saveSettings();
                 }
 
