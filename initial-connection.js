@@ -99,7 +99,7 @@ function saveSettings() {
 
     // console.log('> Characteristic UUID:  ' + savedSettingsCharacteristic.uuid);
 
-    savedSettingsCharacteristic.writeValueWithResponse(sendingArray).then(x => {
+    savedSettingsCharacteristic.writeValueWithResponse(sendingArray).then(_stuff => {
         // console.log("here it is " + stuff);
     }).catch(error => {
         console.log('Argh! Cant send!!! ' + error.message);
