@@ -99,7 +99,7 @@ function saveSettings() {
 
     // console.log('> Characteristic UUID:  ' + savedSettingsCharacteristic.uuid);
 
-    savedSettingsCharacteristic.writeValueWithResponse(sendingArray).then(stuff => {
+    savedSettingsCharacteristic.writeValueWithResponse(sendingArray).then(x => {
         // console.log("here it is " + stuff);
     }).catch(error => {
         console.log('Argh! Cant send!!! ' + error.message);
@@ -333,7 +333,7 @@ var savedDevice;
 var savedServer;
 var savedSettingsCharacteristic;
 
-var searchBtn = document.getElementById('searchDevicesBtn')
+var searchBtn = document.getElementById('searchDevicesBtn');
 searchBtn.addEventListener('click', function() {
     notFoundTxt.style.display = "none";
     let filters = [];
@@ -395,7 +395,7 @@ searchBtn.addEventListener('click', function() {
         return characteristic.readValue();
     }).then(value => {
         var decoder = new TextDecoder("utf-8");
-        let decoded = decoder.decode(value);
+        decoded = decoder.decode(value);
         var hardwareString = decoded;
         // console.log('> Hardware string is ' + hardwareString);
         hardwareVer = semVerToInt(hardwareString);
