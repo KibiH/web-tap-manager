@@ -1,3 +1,24 @@
+var thisPageWorks = false;
+var isChromium = window.chrome;
+var winNav = window.navigator;
+var vendorName = winNav.vendor;
+var isOpera = typeof window.opr !== "undefined";
+var isIEedge = winNav.userAgent.indexOf("Edge") > -1;
+var isIOSChrome = winNav.userAgent.match("CriOS");
+
+if (isIOSChrome) {
+   // is Google Chrome on IOS
+} else if(
+  isChromium !== null &&
+  typeof isChromium !== "undefined" &&
+  vendorName === "Google Inc." &&
+  isOpera === false &&
+  isIEedge === false
+) {
+   // is Google Chrome
+   thisPageWorks = true;
+}
+
 /* BitArray PRIVATE STATIC CONSTANTS */
 BitArray._ON = 1;
 BitArray._OFF = 0;
@@ -231,6 +252,11 @@ tapName.style.display = "none";
 
 var notFoundTxt = document.getElementById('notFound');
 notFoundTxt.style.display = "none";
+
+var browserNotSupported = document.getElementById('browserNotSupported');
+if (thisPageWorks) {
+    browserNotSupported.style.display = "none";
+}
 
 var generalHeader = document.getElementById('general');
 generalHeader.style.display = "none";
